@@ -2,7 +2,7 @@ from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from diffusion_policy.model.diffusion.conditional_unet1d import ConditionalUnet1D
 import torch
         
-class RewardDiffusionDPO(Algorithm):
+class RewardDiffusionDPO(nn.Module):
 
     def __init__(self, config, env, device):
         super().__init__(config, env, device)
@@ -22,7 +22,6 @@ class RewardDiffusionDPO(Algorithm):
         )
 
         self.device = device 
-        
         self.beta = 2000
 
     def forward(self, x_w, x_l, cond_vec):
@@ -51,8 +50,8 @@ class RewardDiffusionDPO(Algorithm):
     def compute_loss(self, noise_pred_w, noise_pred_l, noise):
 
         # model errs
-        model_err_w = (noise - noise_pred_x_w).norm().pow(2)
-        model_err_l = (noise - noise_pred_x_l).norm().pow(2)
+        model_err_w = (noise - noise_pred_w).norm().pow(2)
+        model_err_l = (noise - noise_pred_l).norm().pow(2)
 
         inside_term = -1 * self.beta * (model_err_w - model_err_l)
 
