@@ -106,7 +106,7 @@ def train(config: Config, path: str, device: Union[str, torch.device] = "auto") 
         wandb.init(
             project=os.path.basename(project_dir),
             name=os.path.basename(path),
-            config=config.flatten(separator="-"),
+            config=config.flatten(),
             dir=os.path.join(os.path.dirname(project_dir), "wandb"),
         )
         use_wandb = True

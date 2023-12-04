@@ -2,7 +2,9 @@ import math
 from functools import partial
 from typing import List, Optional, Type
 
-import gym
+# import gymnasium as gym
+import gym 
+import gymnasium as gym2
 import torch
 from torch import distributions, nn
 from torch.nn import functional as F

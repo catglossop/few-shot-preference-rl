@@ -1,0 +1,67 @@
+alg: SAC
+alg_kwargs:
+  actor_freq: 1
+  critic_freq: 1
+  init_steps: 9000
+  init_temperature: 0.1
+  target_freq: 2
+  tau: 0.005
+batch_size: null
+checkpoint: null
+collate_fn: null
+dataset: ReplayBuffer
+dataset_kwargs:
+  batch_size: 512
+  capacity: 800000
+  discount: 0.99
+  fetch_every: 500
+  nstep: 1
+env: PyBulletPandaBlockPushFix-v0
+env_kwargs:
+  goal:
+  - 0.25
+  - 0.32
+  state_noise: 0.001
+eval_env: null
+eval_env_kwargs: {}
+network: ActorCriticPolicy
+network_kwargs:
+  actor_class: DiagonalGaussianMLPActor
+  actor_kwargs:
+    hidden_layers:
+    - 256
+    - 256
+    - 256
+    log_std_bounds:
+    - -5
+    - 2
+    ortho_init: true
+  critic_class: ContinuousMLPCritic
+  critic_kwargs:
+    ensemble_size: 2
+    hidden_layers:
+    - 256
+    - 256
+    - 256
+    ortho_init: true
+optim: Adam
+optim_kwargs:
+  lr: 0.0003
+processor: null
+processor_kwargs: {}
+schedule: null
+schedule_kwargs: {}
+seed: null
+train_kwargs:
+  eval_fn: eval_policy
+  eval_freq: 10000
+  eval_kwargs:
+    num_ep: 15
+  log_freq: 500
+  loss_metric: reward
+  profile_freq: 250
+  total_steps: 800000
+  workers: 0
+validation_dataset_kwargs: null
+wrapper: null
+wrapper_kwargs: {}

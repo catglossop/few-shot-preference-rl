@@ -61,3 +61,6 @@ class ActorCriticPolicy(NetworkContainer):
 
 class ActorCriticRewardPolicy(NetworkContainer):
     CONTAINERS = ["encoder", "actor", "critic", "reward"]
+
+class ImplicitDiffusionActorCriticPolicy(NetworkContainer):
+    CONTAINERS = ["encoder", "actor", "critic", "target_critic", "score_model"]

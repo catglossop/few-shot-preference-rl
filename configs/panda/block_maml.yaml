@@ -40,7 +40,7 @@ env: PyBulletPandaBlockPush-v0
 
 dataset: MultiTaskOracleFeedbackDataset
 dataset_kwargs:
-  paths: path/to/push/dataset
+  paths: datasets/pm
   discount: 0.99
   nstep: 1
   batch_size: 64

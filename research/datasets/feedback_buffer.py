@@ -113,6 +113,8 @@ class MultiTaskOracleFeedbackDataset(torch.utils.data.IterableDataset):
                 action_1=batch["action"][:capacity],
                 action_2=batch["action"][capacity:],
             )
+            print(capacity)
+            print(returns.shape)
             labels = 1.0 * (returns[:capacity] < returns[capacity:])
             dataset.add(queries, labels)
             # Explicitly delete the replay buffer

@@ -40,7 +40,7 @@ env: PyBulletPandaReach-v0
 
 dataset: MultiTaskOracleFeedbackDataset
 dataset_kwargs:
-  paths: path/to/reach/dataset
+  paths: datasets/panda_reach
   discount: 0.99
   nstep: 1
   batch_size: 64
@@ -48,7 +48,7 @@ dataset_kwargs:
   segment_capacity: 6000
   segment_size: 25
 validation_dataset_kwargs:
-  paths: path/to/reach/validation/dataset
+  paths: datasets/panda_reach_validation
   segment_capacity: 4000
 
 processor: null

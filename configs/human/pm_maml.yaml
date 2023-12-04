@@ -43,16 +43,18 @@ env_kwargs:
 
 dataset: MultiTaskOracleFeedbackDataset
 dataset_kwargs:
-  paths: path/to/pm/dataset
+  paths: datasets/pm
   discount: 0.99
   nstep: 1
   batch_size: 48
-  replay_capacity: 100000
-  segment_capacity: 4000
+  capacity: 100000
+  # replay_capacity: 100000
+  # segment_capacity: 4000
   segment_size: 10
 validation_dataset_kwargs:
-  paths: path/to/pm/validation/dataset
-  segment_capacity: 1000
+  paths: datasets/pm_valid
+  # segment_capacity: 1000
+  capacity: 1000
 
 processor: null
 

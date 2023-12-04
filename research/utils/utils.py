@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import gymnasium as gym2
 import gym
 import numpy as np
 import torch
@@ -120,7 +121,10 @@ def set_in_batch(batch: Any, value: Any, start: int, end: Optional[int] = None) 
         if end is None:
             batch[start] = value
         else:
-            batch[start:end] = value
+            if isinstance(value, Tuple):
+                value = value[0]
+            else:
+                batch[start:end] = value
     else:
         raise ValueError("Unsupported type passed to `set_in_batch`")
 

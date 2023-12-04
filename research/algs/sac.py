@@ -211,7 +211,10 @@ class SAC(Algorithm):
 
     def _predict(self, batch: Any, sample: bool = False) -> torch.Tensor:
         with torch.no_grad():
-            z = self.network.encoder(batch["obs"])
+            try:
+                z = self.network.encoder(batch["obs"])
+            except:
+                z = self.network.encoder(batch)
             dist = self.network.actor(z)
             if sample:
                 action = dist.sample()
@@ -226,5 +229,5 @@ class SAC(Algorithm):
     def _save_extras(self) -> Dict:
         return {"log_alpha": self.log_alpha}
 
-    def _load_extras(self, checkpoint) -> Dict:
+    def _load_extras(self, checkpoint, strict) -> Dict:
         self.log_alpha.data = checkpoint["log_alpha"].data
