@@ -2,7 +2,7 @@ from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from diffusion_policy.model.diffusion.conditional_unet1d import ConditionalUnet1D
 import torch
         
-class RewardDiffusionDPO(nn.Module):
+class RewardDiffusionDPO(NetworkContainer):
 
     def __init__(self, config, env, device):
         super().__init__(config, env, device)
@@ -40,10 +40,12 @@ class RewardDiffusionDPO(nn.Module):
         noisy_x_l = self.noise_scheduler.add_noise(
             x_l, noise, timesteps)
         
+        cond_vec = 
+        
 
         # Predict the noise residual
         noise_pred_x_w = self.noise_pred_net(sample=noisy_x_w, timestep=timesteps, global_cond=cond_vec)
-        noise_pred_x_l = self.noise_pred_net(sample=noisy_x_w, timestep=timesteps, global_cond=cond_vec)
+        noise_pred_x_l = self.noise_pred_net(sample=noisy_x_l, timestep=timesteps, global_cond=cond_vec)
 
         return noise_pred_x_w, noise_pred_x_l, noise
     
