@@ -40,7 +40,7 @@ env: mw_sweep-into-v2
 
 dataset: MultiTaskOracleFeedbackDataset
 dataset_kwargs:
-  paths: ../datasets/fs_test/ml10/
+  paths: ../datasets/mw/
   discount: 0.99
   nstep: 1
   batch_size: 64

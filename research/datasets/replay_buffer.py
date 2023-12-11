@@ -129,7 +129,7 @@ class ReplayBuffer(torch.utils.data.IterableDataset):
         cleanup: bool = True,
         fetch_every: int = 1000,
         batch_size: Optional[int] = None,
-        sample_multiplier: float = 1.5,
+        sample_multiplier: float = 3,
         stack: int = 1,
         pad: int = 0,
         next_obs: bool = True,

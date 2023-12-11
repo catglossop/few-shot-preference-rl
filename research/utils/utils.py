@@ -192,7 +192,6 @@ class PrintNode(torch.nn.Module):
 def np_dataset_alloc(
     space: gym.Space, capacity: int, begin_pad: Tuple[int] = tuple(), end_pad: Tuple[int] = tuple()
 ) -> np.ndarray:
-    print(type(space))
     if isinstance(space, gym.spaces.Dict):
         return {k: np_dataset_alloc(v, capacity, begin_pad=begin_pad, end_pad=end_pad) for k, v in space.items()}
     elif isinstance(space, gym.spaces.Box):

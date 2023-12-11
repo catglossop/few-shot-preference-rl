@@ -10,3 +10,4 @@ from .mlp import (
     RewardMLPEnsemble,
     MetaRewardMLPEnsemble,
 )
+from .diffusion_dpo import RewardDiffusionDPO
