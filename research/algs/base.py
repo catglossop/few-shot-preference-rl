@@ -6,6 +6,8 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Any, Dict, Optional, Type, Union
 
+import tqdm
+from tqdm import tqdm
 import gym
 import numpy as np
 import torch
@@ -236,7 +238,7 @@ class Algorithm(ABC):
         total_steps: int,
         schedule: Optional[Any] = None,
         schedule_kwargs: Dict = {},
-        log_freq: int = 100,
+        log_freq: int = 1,
         eval_freq: int = 1000,
         max_eval_steps: int = -1,
         workers: Optional[int] = 4,
@@ -307,7 +309,8 @@ class Algorithm(ABC):
         profiling_metric_lists = defaultdict(list)
 
         while current_step <= total_steps:
-            for batch in dataloader:
+            print(f"Current step: {current_step}")
+            for batch in tqdm(dataloader):
                 # Profiling
                 if profile_freq > 0 and self._steps % profile_freq == 0:
                     stop_time = time.time()

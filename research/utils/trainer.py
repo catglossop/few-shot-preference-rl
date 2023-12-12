@@ -12,6 +12,7 @@ from . import schedules
 from .config import Config
 from .logger import Logger
 
+os.environ["WANDB_API_KEY"] = "a83d04a0c8fd23b049d3beae48c339102b1caf6e"
 
 def get_env(env: gym.Env, env_kwargs: Dict, wrapper: Optional[gym.Env], wrapper_kwargs: Dict) -> gym.Env:
     # Try to get the environment
@@ -106,7 +107,7 @@ def train(config: Config, path: str, device: Union[str, torch.device] = "auto") 
         wandb.init(
             project=os.path.basename(project_dir),
             name=os.path.basename(path),
-            config=config.flatten(separator="-"),
+            config=config.flatten(),
             dir=os.path.join(os.path.dirname(project_dir), "wandb"),
         )
         use_wandb = True

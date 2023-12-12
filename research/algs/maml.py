@@ -2,6 +2,7 @@ import itertools
 
 import numpy as np
 import torch
+import wandb
 
 from research.utils import utils
 
@@ -39,7 +40,7 @@ class PreferenceMAML(Algorithm):
         else:
             self.reward_network = self.network
         assert hasattr(self.reward_network, "params"), "Network class not setup for meta algs"
-        assert isinstance(self.reward_network.params, torch.nn.ParameterDict)
+        assert isinstance(self.reward_network.params, torch.nn.ParameterList)
 
     def setup_optimizers(self, optim_class, optim_kwargs):
         # Handle case for ActorCriticPolicy.
@@ -47,20 +48,20 @@ class PreferenceMAML(Algorithm):
             network_params = self.network.reward.params
         else:
             network_params = self.network.params
-        self._inner_lrs = torch.nn.ParameterDict(
-            {
-                k: torch.nn.Parameter(torch.tensor(self.inner_lr), requires_grad=self.learn_inner_lr)
-                for k, v in network_params.items()
-            }
+        self._inner_lrs = torch.nn.ParameterList(
+            [
+                torch.nn.Parameter(torch.tensor(self.inner_lr), requires_grad=self.learn_inner_lr)
+                for param in network_params
+            ]
         )
         self.optim["reward"] = optim_class(
-            itertools.chain(network_params.values(), self._inner_lrs.values()), **optim_kwargs
+            itertools.chain(network_params, self._inner_lrs), **optim_kwargs
         )
 
-    def _compute_loss_and_accuracy(self, batch, task_id, parameters=None, reward=True):
+    def _compute_loss_and_accuracy(self, batch, task_id, parameters=None, parameters_bn=None):
         B, S = batch["obs_1"].shape[:2]  # Get the batch size and the segment length
         assert B > 0 and S > 0, "Got Empty batch"
-        if self.reward_net_type == "cond_unet":
+        if self.reward_network.net_type == "cond_unet":
             flat_obs_shape = (B, batch["obs_1"].shape[-1]*S)
             flat_action_shape = (B, batch["action_1"].shape[-1]*S)
 
@@ -88,14 +89,15 @@ class PreferenceMAML(Algorithm):
             x_w = obs_acts[i,j_w,k].reshape(B,S,-1)
             x_l = obs_acts[i,j_l,k].reshape(B,S,-1)
 
-            noise_pred_x_w, noise_pred_x_l, noise = self.reward_network.forward(x_w, x_l, torch.tensor(task_id).to('cuda'), None)
+            noise_pred_x_w, noise_pred_x_l, noise = self.reward_network.forward(x_w, x_l, torch.tensor(task_id).to('cuda'), parameters)
             loss, reward_diff = self.reward_network.compute_loss(noise_pred_x_w, noise_pred_x_l, noise)
 
             # Compute the accuracy
             with torch.no_grad():
                 pred = (reward_diff > 0).to(dtype=labels.dtype)
                 accuracy = (torch.round(pred) == torch.round(labels)).float().mean().item()
-        elif self.reward_net_type == "mlp":
+
+        elif self.reward_network.net_type == "mlp":
             cond_vec = torch.tensor(task_id).to('cuda').unsqueeze(0).repeat(x_w.shape[0]).unsqueeze(1)
 
             flat_obs_final_shape = (B, batch["obs_1"].shape[-1]*S)
@@ -159,13 +161,20 @@ class PreferenceMAML(Algorithm):
 
     def _inner_step(self, batch, task_id, train=True):
         accuracies = []
-        parameters = {k: torch.clone(v) for k, v in self.reward_network.params.items()}
+        parameters = torch.nn.ParameterList([torch.clone(param) for param in self.reward_network.params])
         for i in range(self.num_inner_steps):
-            loss, accuracy = self._compute_loss_and_accuracy(batch, torch.tensor(task_id).to('cuda'), parameters, reward=True)
+            loss, accuracy = self._compute_loss_and_accuracy(batch, torch.tensor(task_id).to('cuda'), parameters)
             accuracies.append(accuracy)
-            grads = torch.autograd.grad(loss, parameters.values(), create_graph=train)
-            for j, k in enumerate(parameters.keys()):
-                parameters[k] = parameters[k] - self._inner_lrs[k] * grads[j]
+            self.reward_network.zero_grad_params(parameters)
+            grads = torch.autograd.grad(loss, parameters, create_graph=train, allow_unused=True)
+            self.reward_network.clip_grad_by_norm_(grads, 0.5)
+            temp_params = []
+            for lr, grad, param in zip(self._inner_lrs, grads, parameters):
+                if grad is None:
+                    temp_params.append(param)
+                else:
+                    temp_params.append(param - lr*grad)
+            parameters = torch.nn.ParameterList(temp_params)
 
         with torch.no_grad():
             loss, accuracy = self._compute_loss_and_accuracy(batch, torch.tensor(task_id).to('cuda'), parameters)
@@ -185,7 +194,7 @@ class PreferenceMAML(Algorithm):
             batch_support = utils.get_from_batch(task, 0, end=self.num_support)
             batch_query = utils.get_from_batch(task, self.num_support, end=self.num_support + self.num_query)
             support_accuracy, parameters = self._inner_step(batch_support, task_id, train=train)
-            loss, query_accuracy = self._compute_loss_and_accuracy(batch_query, torch.tensor(task_id).to('cuda'), parameters, reward=True)
+            loss, query_accuracy = self._compute_loss_and_accuracy(batch_query, torch.tensor(task_id).to('cuda'), parameters)
             outer_losses.append(loss)
             support_accuracies.append(support_accuracy)
             query_accuracies.append(query_accuracy)
@@ -204,6 +213,7 @@ class PreferenceMAML(Algorithm):
             return {}
         self.optim["reward"].zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.reward_network.parameters(), 0.5)
         self.optim["reward"].step()
         metrics = {
             "outer_loss": loss.item(),

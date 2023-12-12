@@ -1,6 +1,7 @@
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from diffusion_policy.model.diffusion.conditional_unet1d import ConditionalUnet1D
-from mlp import MetaRewardMLPEnsemble
+from .conditional_unet1d import MetaConditionalUnet1D
+from .mlp import MetaRewardMLPEnsemble
 import torch
 from torch import distributions, nn
 from torch.nn import functional as F
@@ -24,11 +25,11 @@ class RewardDiffusionDPO(nn.Module):
         )
         self.net_type = net_type
         if self.net_type == "cond_unet":
-            self.noise_pred_net = ConditionalUnet1D(
+            self.noise_pred_net = MetaConditionalUnet1D(
                 input_dim=(observation_space.shape[0] + action_space.shape[0]), # which segment of th trajectory wins
                 global_cond_dim=1, # check this to match to the conditional info 
                 down_dims=down_dims,
-                diffusion_step_embed_dim=seglen,
+                diffusion_step_embed_dim=256,
                 cond_predict_scale=cond_predict_scale,
                 
             )
@@ -37,22 +38,17 @@ class RewardDiffusionDPO(nn.Module):
                                                         action_space, 
                                                         ensemble_size=1,
                                                         )
-        self.noise_pred_net.to('cuda')
 
         self.beta = 1
-        parameters = self.noise_pred_net.parameters(recurse=True)
-        params = {}
-        idx = 0
-        for param in parameters:
-            params[f'layer_{idx}'] = param 
-            idx += 1
-        
-        self.params = torch.nn.ParameterDict(params)
+        self.params = self.noise_pred_net.params
+        self.params_bn = self.noise_pred_net.params_bn
 
 
-    def forward(self, x_w, x_l, cond_vec, params=None):
+    def forward(self, x_w, x_l, cond_vec, params=None, params_bn=None):
         if params is None:
             params = self.params
+        if params_bn is None:
+            params_bn = self.params_bn
         if self.net_type == "cond_unet":
             noise = torch.randn(x_w.shape, device='cuda')
             cond_vec = cond_vec.unsqueeze(0).repeat(x_w.shape[0]).unsqueeze(1)
@@ -71,8 +67,8 @@ class RewardDiffusionDPO(nn.Module):
             noisy_x_l = self.noise_scheduler.add_noise(
                 x_l, noise, timesteps)
             # Predict the noise residual
-            noise_pred_x_w = self.noise_pred_net(sample=noisy_x_w, timestep=timesteps, global_cond=cond_vec)
-            noise_pred_x_l = self.noise_pred_net(sample=noisy_x_l, timestep=timesteps, global_cond=cond_vec)
+            noise_pred_x_w = self.noise_pred_net(sample=noisy_x_w, timestep=timesteps, global_cond=cond_vec, params=params, params_bn=params_bn)
+            noise_pred_x_l = self.noise_pred_net(sample=noisy_x_l, timestep=timesteps, global_cond=cond_vec, params=params, params_bn=params_bn)
         elif self.net_type == "mlp":
             noise = torch.randn(x_w.shape, device='cuda')
             B = x_w.shape[0]
@@ -95,6 +91,13 @@ class RewardDiffusionDPO(nn.Module):
             noise_pred_x_l = self.noise_pred_net(sample=noisy_x_l)
 
         return noise_pred_x_w, noise_pred_x_l, noise
+
+    def parameters(self):
+        """
+        override this function since initial parameters will return with a generator.
+        :return:
+        """
+        return self.params
     
     def compute_loss(self, noise_pred_w, noise_pred_l, noise):
 
@@ -110,8 +113,10 @@ class RewardDiffusionDPO(nn.Module):
         model_err_l = model_err_l.norm().pow(2)
 
         inside_term = -1 * self.beta * (model_err_w - model_err_l)
-
-        loss = -1 * torch.log(torch.sigmoid(inside_term))
+        try:
+            loss = -1 * torch.log(torch.sigmoid(inside_term))
+        except:
+            breakpoint()
 
         with torch.no_grad():
             reward_diff = self.beta*(model_err_w - model_err_l)
@@ -123,5 +128,46 @@ class RewardDiffusionDPO(nn.Module):
             reward = self.beta*((noise - noise_pred_a).norm().pow(2) - (noise - noise_pred_b).norm().pow(2))
 
         return reward
+
+    def zero_grad_params(self, params=None):
+        """
+
+        :param vars:
+        :return:
+        """
+        with torch.no_grad():
+            if params is None:
+                for p in self.params:
+                    if p.grad is not None:
+                        p.grad.zero_()
+            else:
+                for p in params:
+                    if p.grad is not None:
+                        p.grad.zero_()
+    
+    def clip_grad_by_norm_(self, grad, max_norm):
+        """
+        in-place gradient clipping.
+        :param grad: list of gradients
+        :param max_norm: maximum norm allowable
+        :return:
+        """
+
+        total_norm = 0
+        counter = 0
+        for g in grad:
+            if g is not None:
+                param_norm = g.data.norm(2)
+                total_norm += param_norm.item() ** 2
+                counter += 1
+        total_norm = total_norm ** (1. / 2)
+
+        clip_coef = max_norm / (total_norm + 1e-6)
+        if clip_coef < 1:
+            for g in grad:
+                if g is not None:
+                    g.data.mul_(clip_coef)
+
+        return total_norm/counter
 
 

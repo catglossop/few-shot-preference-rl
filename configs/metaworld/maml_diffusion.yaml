@@ -29,6 +29,7 @@ network_kwargs:
     seglen: 24
     down_dims: [64, 128, 256]
     cond_predict_scale: False
+    net_type: cond_unet
 
 batch_size: 4
 collate_fn: ["import", "research.algs.maml", "collate"]
@@ -53,7 +54,7 @@ processor: null
 
 train_kwargs: # Arguments given to Algorithm.train
   total_steps: 200000 # The total number of steps to train
-  log_freq: 100 # How often to log values
+  log_freq: 1 # How often to log values
   eval_fn: null
   max_eval_steps: 10
   loss_metric: outer_loss # The validation metric that determines when to save the "best_checkpoint"

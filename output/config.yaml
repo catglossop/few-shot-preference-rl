@@ -50,6 +50,7 @@ network_kwargs:
     - 64
     - 128
     - 256
+    net_type: cond_unet
     seglen: 24
 optim: Adam
 optim_kwargs:
@@ -61,7 +62,7 @@ schedule_kwargs: {}
 seed: null
 train_kwargs:
   eval_fn: null
-  log_freq: 100
+  log_freq: 1
   loss_metric: outer_loss
   max_eval_steps: 10
   profile_freq: 50

@@ -1,5 +1,6 @@
 import argparse
 
+
 from research.utils.trainer import Config, train
 
 if __name__ == "__main__":
