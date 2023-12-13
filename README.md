@@ -1,4 +1,13 @@
-# Few-Shot Preference Learning for Human-in-the-Loop RL
+# Meta Diffusion Reward Models
+
+The original code base is kept on the main branch while the implementation of the reward model is included in the diffusion-reward branch of this repository. The initial implementation of IDQL in pytorch in also included in this repo in the X branch. Data collection can be run in the same form as below. To train the reward model with MAML, modify the dataset paths in the maml_diffusion.yaml file and change the <env> to which environment you want to train the reward model for.  
+
+```
+python scripts/train.py --config configs/<env>/maml_diffusion.yaml --path path/to/save/dir
+```
+
+
+# Original Few Shot Preference Learning README
 
 Code for *Few-Shot Preference Learning for Human-in-the-Loop RL* CoRL 2022 by [Joey Hejna](https://jhejna.github.io) and [Dorsa Sadigh](dorsa.fyi). 
 
@@ -8,7 +17,7 @@ This repository is based on [research-lightning](https://github.com/jhejna/resea
 
 ## Installation
 
-First cloen the repository. Then complete the following steps:
+First clone the repository. Then complete the following steps:
 1. Edit `environment_cpu.yaml` and `environment_gpu.yaml` as desired to include any additional dependencies via conda or pip. You can also change the name if desired. This is needed if you are going to use PolyMetis for real robot experiments. You can view their documentation [here](https://facebookresearch.github.io/fairo/polymetis/installation.html).
 2. Create the conda environment using `conda env create -f environment_<cpu or gpu>.yaml`.
 3. Install the research package via `pip install -e research`.
