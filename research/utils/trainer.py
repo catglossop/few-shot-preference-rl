@@ -12,7 +12,7 @@ from . import schedules
 from .config import Config
 from .logger import Logger
 
-os.environ["WANDB_API_KEY"] = "a83d04a0c8fd23b049d3beae48c339102b1caf6e"
+os.environ["WANDB_API_KEY"] = "YOUR KEY"
 
 def get_env(env: gym.Env, env_kwargs: Dict, wrapper: Optional[gym.Env], wrapper_kwargs: Dict) -> gym.Env:
     # Try to get the environment
