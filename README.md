@@ -1,6 +1,6 @@
 # Meta Diffusion Reward Models
 
-The original code base is kept on the main branch while the implementation of the reward model is included in the diffusion-reward branch of this repository. The initial implementation of IDQL in pytorch in also included in this repo in the X branch. Data collection can be run in the same form as below. 
+The original code base is kept on the main branch while the implementation of the reward model is included in the diffusion-reward branch of this repository. TThe initial implementation of IDQL in pytorch in also included in this repo in the idql branch. Data collection can be run in the same form as below. 
 
 To run the data collection, using the following command replacing the config file as needed
 ```
