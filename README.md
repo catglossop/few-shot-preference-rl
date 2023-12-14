@@ -1,6 +1,19 @@
 # Meta Diffusion Reward Models
 
-The original code base is kept on the main branch while the implementation of the reward model is included in the diffusion-reward branch of this repository. The initial implementation of IDQL in pytorch in also included in this repo in the X branch. Data collection can be run in the same form as below. To train the reward model with MAML, modify the dataset paths in the maml_diffusion.yaml file and change the <env> to which environment you want to train the reward model for.  
+The original code base is kept on the main branch while the implementation of the reward model is included in the diffusion-reward branch of this repository. The initial implementation of IDQL in pytorch in also included in this repo in the X branch. Data collection can be run in the same form as below. 
+
+To run the data collection, using the following command replacing the config file as needed
+```
+python tools/run_local.py --entry-point scripts/metaworld/collect_policy_dataset.py --cpus 4 --valid-gpus 1 --gpus 0 --arguments benchmark=ml10 tasks-per-env=25 cross-env-ep=10 within-env-ep=25 expert-ep=15 random-ep=2 epsilon=0.1 num-workers=10 noise-type=gaussian path=datasets/mw
+```
+```
+python tools/run_local.py --entry-point scripts/dm_control/collect_random_dataset.py --cpus 4 --valid-gpus 1 --gpus 0 --arguments num-steps=25000 env=point_mass_random path=datasets/pm
+```
+```
+python tools/run_local.py --entry-point scripts/panda/collect_reach_dataset.py  --cpus 4 --valid-gpus 1 --gpus 0 --arguments num-steps=10000 num-tasks=5 noise-magnitude=0.8 path=datasets/panda_reach
+```
+
+To train the reward model with MAML, modify the dataset paths in the maml_diffusion.yaml file and change the <env> to which environment you want to train the reward model for. Change the wandb api key in the trainer.py file to log to your wandb account. 
 
 ```
 python scripts/train.py --config configs/<env>/maml_diffusion.yaml --path path/to/save/dir
