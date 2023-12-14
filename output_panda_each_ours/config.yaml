@@ -1,0 +1,75 @@
+alg: PreferenceMAMLDiffusion
+alg_kwargs:
+  inner_lr: 0.001
+  learn_inner_lr: true
+  num_inner_steps: 2
+  num_query: 32
+  num_support: 32
+batch_size: 4
+checkpoint: null
+collate_fn:
+- import
+- research.algs.maml
+- collate
+dataset: MultiTaskOracleFeedbackDataset
+dataset_kwargs:
+  batch_size: 64
+  capacity: 200000
+  discount: 0.99
+  nstep: 1
+  paths: /home/cglossop/few-shot-preference-rl/datasets/panda_reach/
+  segment_size: 24
+env: PyBulletPandaReach-v0
+env_kwargs: {}
+eval_env: null
+eval_env_kwargs: {}
+network: ActorCriticRewardPolicy
+network_kwargs:
+  actor_class: DiagonalGaussianMLPActor
+  actor_kwargs:
+    hidden_layers:
+    - 256
+    - 256
+    - 256
+    log_std_bounds:
+    - -5
+    - 2
+    ortho_init: true
+  critic_class: ContinuousMLPCritic
+  critic_kwargs:
+    ensemble_size: 2
+    hidden_layers:
+    - 256
+    - 256
+    - 256
+    ortho_init: true
+  reward_class: RewardDiffusionDPO
+  reward_kwargs:
+    cond_predict_scale: false
+    down_dims:
+    - 16
+    - 32
+    net_type: cond_unet
+    seglen: 8
+optim: Adam
+optim_kwargs:
+  lr: 0.0001
+processor: null
+processor_kwargs: {}
+schedule: null
+schedule_kwargs: {}
+seed: null
+train_kwargs:
+  eval_fn: null
+  eval_freq: 100
+  log_freq: 50
+  loss_metric: outer_loss
+  max_eval_steps: 25
+  profile_freq: 50
+  total_steps: 100000
+  workers: 0
+validation_dataset_kwargs:
+  capacity: 4000
+  paths: /home/cglossop/few-shot-preference-rl/datasets/panda_reach_valid
+wrapper: null
+wrapper_kwargs: {}

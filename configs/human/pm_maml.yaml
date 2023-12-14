@@ -5,7 +5,7 @@ alg_kwargs:
   num_support: 24
   num_query: 24
   num_inner_steps: 2
-  inner_lr: 0.001
+  inner_lr: 0.00001
   learn_inner_lr: True
 
 optim: Adam
@@ -24,12 +24,18 @@ network_kwargs:
     hidden_layers: [256, 256]
     ensemble_size: 2
     ortho_init: true
-  reward_class: MetaRewardMLPEnsemble
+  # reward_class: MetaRewardMLPEnsemble
+  # reward_kwargs:
+  #   ensemble_size: 3
+  #   hidden_layers: [256, 256, 256]
+  #   act: ["import", "torch.nn.functional", "leaky_relu"]
+  #   output_act: ["import", "torch.nn.functional", "tanh"]
+  reward_class: RewardDiffusionDPO
   reward_kwargs:
-    ensemble_size: 3
-    hidden_layers: [256, 256, 256]
-    act: ["import", "torch.nn.functional", "leaky_relu"]
-    output_act: ["import", "torch.nn.functional", "tanh"]
+    seglen: 8
+    down_dims: [16, 32]
+    cond_predict_scale: False
+    net_type: cond_unet
 
 batch_size: 4
 collate_fn: ["import", "research.algs.maml", "collate"]
@@ -43,16 +49,17 @@ env_kwargs:
 
 dataset: MultiTaskOracleFeedbackDataset
 dataset_kwargs:
-  paths: path/to/pm/dataset
+  paths: /home/cglossop/few-shot-preference-rl/datasets/pm/
   discount: 0.99
   nstep: 1
   batch_size: 48
-  replay_capacity: 100000
-  segment_capacity: 4000
+  # replay_capacity: 100000
+  capacity: 4000
   segment_size: 10
 validation_dataset_kwargs:
-  paths: path/to/pm/validation/dataset
-  segment_capacity: 1000
+  paths: /home/cglossop/few-shot-preference-rl/datasets/pm_valid/
+  # segment_capacity: 1000
+  capacity: 1000
 
 processor: null
 

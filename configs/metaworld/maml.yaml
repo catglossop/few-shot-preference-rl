@@ -40,14 +40,14 @@ env: mw_sweep-into-v2
 
 dataset: MultiTaskOracleFeedbackDataset
 dataset_kwargs:
-  paths: ../datasets/mw/
+  paths: /home/cglossop/few-shot-preference-rl/datasets/mw/
   discount: 0.99
   nstep: 1
   batch_size: 64
   capacity: 6000
   segment_size: 25
 validation_dataset_kwargs:
-  paths: ../datasets/fs_test/ml10_valid
+  paths: /home/cglossop/few-shot-preference-rl/datasets/mw_valid/
   capacity: 5000
 
 processor: null

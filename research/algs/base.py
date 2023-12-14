@@ -5,6 +5,7 @@ import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Any, Dict, Optional, Type, Union
+import wandb
 
 import tqdm
 from tqdm import tqdm
@@ -17,7 +18,7 @@ from research.utils import evaluate, utils
 from research.utils.logger import Logger
 
 MAX_VALID_METRICS = {"reward", "accuracy", "success", "is_success"}
-
+os.environ["WANDB_API_KEY"] = "a83d04a0c8fd23b049d3beae48c339102b1caf6e"
 
 def log_from_dict(logger: Logger, metric_lists: Dict, prefix: str) -> None:
     keys_to_remove = []
@@ -141,6 +142,7 @@ class Algorithm(ABC):
             self.validation_dataset = self.dataset_class(
                 self.observation_space, self.action_space, **validation_dataset_kwargs
             )
+
         else:
             self.validation_dataset = None
 
@@ -245,6 +247,7 @@ class Algorithm(ABC):
         loss_metric: Optional[str] = "loss",
         profile_freq: int = -1,
         use_wandb: bool = False,
+        run = None,
         x_axis: str = "steps",
         eval_fn: Optional[Any] = None,
         eval_kwargs: Dict = {},
@@ -253,7 +256,6 @@ class Algorithm(ABC):
         if use_wandb:
             writers.append("wandb")
         logger = Logger(path=path, writers=writers)
-
         # Construct the dataloaders.
         self.setup_datasets()
         shuffle = not issubclass(self.dataset_class, torch.utils.data.IterableDataset)
@@ -279,7 +281,6 @@ class Algorithm(ABC):
             )
         else:
             validation_dataloader = None
-
         # Create schedulers for the optimizers
         schedulers = {}
         for k in schedule.keys():
@@ -299,7 +300,6 @@ class Algorithm(ABC):
         best_validation_metric = -1 * float("inf") if loss_metric in MAX_VALID_METRICS else float("inf")
         last_train_log = -log_freq  # Ensure that we log on the first step
         last_validation_log = -eval_freq  # Ensure that we log on the first step
-
         # Setup training
         self._setup_train()
         self.network.train()
@@ -307,7 +307,6 @@ class Algorithm(ABC):
         # Setup profiling immediately before we start the loop.
         start_time = current_time = time.time()
         profiling_metric_lists = defaultdict(list)
-
         while current_step <= total_steps:
             print(f"Current step: {current_step}")
             for batch in tqdm(dataloader):
@@ -345,9 +344,14 @@ class Algorithm(ABC):
                     current_step = self.epochs
                 else:
                     current_step = self._steps
-
+                print("cnt: ",self._steps)
+                print(train_metrics)
+                if self._steps % 5 == 0:
+                    print(train_metrics)
+                    run.log(train_metrics, step=self._steps)
                 if (current_step - last_train_log) >= log_freq:
                     # Timing metrics
+                    
                     current_time = time.time()
                     logger.record("time/steps", self._steps)
                     logger.record("time/epochs", self._epochs)

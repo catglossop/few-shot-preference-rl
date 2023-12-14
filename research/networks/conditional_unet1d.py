@@ -74,7 +74,7 @@ class MetaConditionalUnet1D(nn.Module):
     def __init__(self, 
         input_dim,
         global_cond_dim=1,
-        diffusion_step_embed_dim=256,
+        diffusion_step_embed_dim=16,
         down_dims=[256,512,1024],
         kernel_size=3,
         n_groups=8,

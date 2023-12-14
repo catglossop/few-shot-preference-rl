@@ -1,16 +1,16 @@
 # Example Config that uses almost all values
 
-alg: PreferenceMAML
+alg: PreferenceMAMLDiffusion
 alg_kwargs:
-  num_support: 32
-  num_query: 32
+  num_support: 128
+  num_query: 128
   num_inner_steps: 2
-  inner_lr: 0.001
+  inner_lr: 0.00000001
   learn_inner_lr: True
 
 optim: Adam
 optim_kwargs:
-  lr: 0.0001
+  lr: 0.00000001
 
 network: ActorCriticRewardPolicy
 network_kwargs:
@@ -26,8 +26,8 @@ network_kwargs:
     ortho_init: true
   reward_class: RewardDiffusionDPO
   reward_kwargs:
-    seglen: 24
-    down_dims: [64, 128, 256]
+    seglen: 8
+    down_dims: [16, 32]
     cond_predict_scale: False
     net_type: cond_unet
 
@@ -40,14 +40,14 @@ env: mw_sweep-into-v2
 
 dataset: MultiTaskOracleFeedbackDataset
 dataset_kwargs:
-  paths: /home/cglossop/few-shot-preference-rl/datasets/mw/
+  paths: /home/cglossop/few-shot-preference-rl/datasets_ours/mw/
   discount: 0.99
   nstep: 1
-  batch_size: 64
+  batch_size: 256
   capacity: 6000
   segment_size: 24
 validation_dataset_kwargs:
-  paths: /home/cglossop/few-shot-preference-rl/datasets/mw_valid/
+  paths: /home/cglossop/few-shot-preference-rl/datasets_ours/mw_valid/
   capacity: 5000
 
 processor: null

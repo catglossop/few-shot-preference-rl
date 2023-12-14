@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import gymnasium as gym 
+import gym as gym_old
 import numpy as np
 import torch
 
@@ -195,6 +196,9 @@ def np_dataset_alloc(
     if isinstance(space, gym.spaces.Dict):
         return {k: np_dataset_alloc(v, capacity, begin_pad=begin_pad, end_pad=end_pad) for k, v in space.items()}
     elif isinstance(space, gym.spaces.Box):
+        dtype = np.float32 if space.dtype == np.float64 else space.dtype
+        return np.empty((capacity,) + begin_pad + space.shape + end_pad, dtype=dtype)
+    elif isinstance(space, gym_old.spaces.box.Box):
         dtype = np.float32 if space.dtype == np.float64 else space.dtype
         return np.empty((capacity,) + begin_pad + space.shape + end_pad, dtype=dtype)
     elif isinstance(space, gym.spaces.Discrete) or isinstance(space, np.int64):

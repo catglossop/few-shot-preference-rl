@@ -80,7 +80,7 @@ if __name__ == "__main__":
                         command_list.append(str(arg_value))
                     if job_gpus is not None:
                         env = os.environ
-                        env["CUDA_VISIBLE_DEVICES"] = ",".join(job_gpus)
+                        env["CUDA_VISIBLE_DEVICES"] = ",".join(str(job_gpus))
                     else:
                         env = None
 

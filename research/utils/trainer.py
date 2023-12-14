@@ -104,7 +104,7 @@ def train(config: Config, path: str, device: Union[str, torch.device] = "auto") 
         import wandb
 
         project_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        wandb.init(
+        run = wandb.init(
             project=os.path.basename(project_dir),
             name=os.path.basename(path),
             config=config.flatten(),
@@ -143,18 +143,17 @@ def train(config: Config, path: str, device: Union[str, torch.device] = "auto") 
         sum(p.numel() for p in model.network.parameters() if p.requires_grad),
         "trainable parameters.",
     )
-
     model.train(
         path,
         schedule=schedule,
         schedule_kwargs=schedule_kwargs,
         use_wandb=use_wandb,
+        run=run,    
         **config["train_kwargs"],
     )
 
     print("[research] finished training for", model.steps, "steps.")
     return model
-
 
 def load(config: Config, model_path: str, device: Union[str, torch.device] = "auto", strict: bool = True) -> Algorithm:
     config = config.parse()  # Parse the config before getting the model

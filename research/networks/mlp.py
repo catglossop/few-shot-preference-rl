@@ -2,7 +2,8 @@ import math
 from functools import partial
 from typing import List, Optional, Type
 
-import gymnasium as gym
+import gymnasium as gym 
+import gym as gym_old
 import torch
 from torch import distributions, nn
 from torch.nn import functional as F
@@ -227,7 +228,7 @@ class DiagonalGaussianMLPActor(nn.Module):
     ):
         super().__init__()
         # If we have a dict space, concatenate the input dims
-        assert isinstance(observation_space, gym.spaces.Box) and len(observation_space.shape) == 1
+        assert (isinstance(observation_space, gym.spaces.Box) or isinstance(observation_space, gym_old.spaces.box.Box)) and len(observation_space.shape) == 1
 
         self.state_dependent_log_std = state_dependent_log_std
         self.log_std_bounds = log_std_bounds
